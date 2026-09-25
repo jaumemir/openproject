@@ -61,6 +61,15 @@ CarrierWave.configure do |config|
   config.cache_storage = :file
 end
 
+# Azure Files (SMB) rejects chmod on individual files/directories with Errno::EPERM,
+# since the CIFS mount enforces fixed permission bits rather than per-file POSIX permissions.
+if ActiveModel::Type::Boolean.new.cast(ENV["OPENPROJECT_ATTACHMENTS_SKIP_CHMOD"])
+  CarrierWave.configure do |config|
+    config.permissions = false
+    config.directory_permissions = false
+  end
+end
+
 unless OpenProject::Configuration.fog_credentials.empty?
   CarrierWave::Configuration.configure_fog!
 end
